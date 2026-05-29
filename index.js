@@ -13,6 +13,26 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 (async () => {
   console.log('🚀 Memulai Auto Claim Faucet Sepolia...\n');
   
+  // Baca Private Keys dari file pk.txt
+  let privateKeys = [];
+  try {
+      if (fs.existsSync('./pk.txt')) {
+          const pkFile = fs.readFileSync('./pk.txt', 'utf8');
+          privateKeys = pkFile.split('\n').map(line => line.trim()).filter(line => line.length > 0 && line.startsWith('0x'));
+      } else {
+          console.error('❌ File pk.txt tidak ditemukan!');
+          process.exit(1);
+      }
+  } catch (err) {
+      console.error('❌ Gagal membaca pk.txt:', err.message);
+      process.exit(1);
+  }
+  
+  if (privateKeys.length === 0) {
+      console.error('❌ Tidak ada Private Key valid di dalam pk.txt (pastikan diawali 0x)');
+      process.exit(1);
+  }
+  
   if (!fs.existsSync('./user_data')) {
     fs.mkdirSync('./user_data');
   }
@@ -67,11 +87,11 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
   // Set viewport
   await page.setViewport({ width: 1280, height: 720 });
 
-  for (let i = 0; i < config.privateKeys.length; i++) {
-    const pk = config.privateKeys[i];
+  for (let i = 0; i < privateKeys.length; i++) {
+    const pk = privateKeys[i];
     const walletObj = new ethers.Wallet(pk);
     const walletAddress = walletObj.address;
-    console.log(`⏳ [${i + 1}/${config.privateKeys.length}] Memproses wallet: ${walletAddress}`);
+    console.log(`⏳ [${i + 1}/${privateKeys.length}] Memproses wallet: ${walletAddress}`);
     
     try {
       await page.goto(config.faucetUrl, { waitUntil: 'networkidle2' });
@@ -157,7 +177,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
     }
     
     // Jeda sebelum lanjut ke wallet berikutnya (hindari rate limit)
-    if (i < config.privateKeys.length - 1) {
+    if (i < privateKeys.length - 1) {
       console.log(`⏱️ Menunggu ${config.delayBetweenClaimsMs / 1000} detik sebelum lanjut ke wallet berikutnya...`);
       await delay(config.delayBetweenClaimsMs);
     }
@@ -170,8 +190,8 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
   
   const provider = new ethers.JsonRpcProvider(config.rpcUrl);
   
-  for (let i = 0; i < config.privateKeys.length; i++) {
-     const pk = config.privateKeys[i];
+  for (let i = 0; i < privateKeys.length; i++) {
+     const pk = privateKeys[i];
      const walletObj = new ethers.Wallet(pk, provider);
      
      try {
