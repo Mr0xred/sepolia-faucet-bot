@@ -28,13 +28,32 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       console.log(`🌐 Menggunakan Proxy: ${config.proxyUrl}`);
   }
 
-  // Menggunakan Chrome bawaan komputer Anda agar TIDAK MENDOWNLOAD apapun lagi
-  const browser = await puppeteer.launch({
+  const os = require('os');
+  
+  const launchOptions = {
     headless: true, // <-- Bekerja 100% otomatis di belakang layar (background)
-    executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Pakai Chrome asli Anda
     userDataDir: './user_data', 
     args: browserArgs
-  });
+  };
+
+  // Deteksi OS otomatis: Jika di Windows pakai Chrome asli, jika di VPS pakai yang tersedia
+  if (os.platform() === 'win32') {
+      launchOptions.executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+  } else if (os.platform() === 'linux') {
+      if (fs.existsSync('/usr/bin/google-chrome')) {
+          launchOptions.executablePath = '/usr/bin/google-chrome';
+      } else if (fs.existsSync('/usr/bin/google-chrome-stable')) {
+          launchOptions.executablePath = '/usr/bin/google-chrome-stable';
+      } else if (fs.existsSync('/usr/bin/chromium-browser')) {
+          launchOptions.executablePath = '/usr/bin/chromium-browser';
+      } else if (fs.existsSync('/usr/bin/chromium')) {
+          launchOptions.executablePath = '/usr/bin/chromium';
+      }
+      // Jika tidak ada path di atas yang cocok di VPS, Puppeteer akan mencoba 
+      // menggunakan Chromium bawaan yang terdownload saat 'npm install'
+  }
+
+  const browser = await puppeteer.launch(launchOptions);
 
   const page = await browser.newPage();
   
