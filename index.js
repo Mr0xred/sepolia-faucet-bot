@@ -40,7 +40,10 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
   const browserArgs = [
       '--no-sandbox', 
       '--disable-setuid-sandbox',
-      '--window-size=1280,720'
+      '--window-size=1280,720',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding'
   ];
   
   if (config.useProxy && config.proxyUrl) {
@@ -147,12 +150,12 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
           await delay(durationMs);
           
           console.log('🛑 Waktu mining selesai. Mencari tombol "Stop Mining & Claim Rewards"...');
-          const stopButtons = await page.$$('button');
+          const stopButtons = await page.$$('button, a.btn, a[role="button"], div.btn, input[type="button"]');
           let stopClicked = false;
           
           for (const btn of stopButtons) {
-            const text = await page.evaluate(el => el.textContent, btn);
-            if (text.toLowerCase().includes('stop mining') || text.toLowerCase().includes('claim reward')) {
+            const text = await page.evaluate(el => el.textContent || el.value || '', btn);
+            if (text.toLowerCase().includes('stop mining') || text.toLowerCase().includes('claim reward') || text.toLowerCase().includes('claim')) {
               await btn.click();
               stopClicked = true;
               break;
