@@ -1,0 +1,15 @@
+{
+  "faucetUrl": "https://sepolia-faucet.pk910.de/",
+  "useProxy": false,
+  "proxyUrl": "http://ip:port",
+  "proxyUsername": "username",
+  "proxyPassword": "password",
+  "miningDurationMinutes": 30,
+  "delayBetweenClaimsMs": 15000,
+  "rpcUrl": "https://rpc.sepolia.org",
+  "mainWalletAddress": "0xYourMainWalletAddress",
+  "privateKeys": [
+    "0xYourPrivateKey1",
+    "0xYourPrivateKey2"
+  ]
+}
